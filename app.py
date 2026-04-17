@@ -8,7 +8,7 @@ import time
 app = Flask(__name__)
 session = requests.Session()
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Get the directory where app.py lives
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
