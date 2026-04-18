@@ -8,6 +8,22 @@ import time
 app = Flask(__name__)
 session = requests.Session()
 
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": f"Bad request: {str(e)}"}), 400
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Endpoint not found"}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"error": "Method not allowed"}), 405
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Get the directory where app.py lives
@@ -251,7 +267,9 @@ def call_openrouter(api_key, instruction, prompt):
 
 @app.route("/analyse", methods=["POST"])
 def analyse():
-    data = request.json
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid request body. Expected JSON."}), 400
     product = data.get("product", "")
     api_key = data.get("api_key", "")
     analysis_type = data.get("analysis_type", "strategy") # 'strategy', 'pricing', 'both'
@@ -294,7 +312,9 @@ def analyse():
 
 @app.route("/compare", methods=["POST"])
 def compare():
-    data = request.json
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid request body. Expected JSON."}), 400
     p1 = data.get("product1", "")
     p2 = data.get("product2", "")
     api_key = data.get("api_key", "")
