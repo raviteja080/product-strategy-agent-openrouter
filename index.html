@@ -989,14 +989,6 @@ async function run() {
   if (!product) { document.getElementById('productInput').focus(); return; }
   if (currentMode === 'compare' && !product2) { document.getElementById('productInput2').focus(); return; }
   if (!apiKey) { document.getElementById('apiKey').focus(); return; }
-  if (!apiKey.startsWith('sk-or-')) {
-    document.getElementById('out').innerHTML =
-      `<div class="error-box">⚠️ <strong>Invalid API Key format.</strong><br><br>
-      Your OpenRouter API key must start with <code>sk-or-</code>. 
-      Please copy the correct key from <a href="https://openrouter.ai/keys" target="_blank" style="color:#00e5ff">openrouter.ai/keys</a> and paste it above.</div>`;
-    document.getElementById('apiKey').focus();
-    return;
-  }
 
   const btn = document.getElementById('btn');
   btn.disabled = true;
@@ -1012,7 +1004,13 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product: p, api_key: apiKey, analysis_type: currentType })
     });
-    const d = await res.json();
+    const rawText = await res.text();
+    let d;
+    try {
+      d = JSON.parse(rawText);
+    } catch(parseErr) {
+      throw new Error(`Server returned non-JSON (HTTP ${res.status}):\n\n${rawText.slice(0, 500)}`);
+    }
     if (d.error) throw new Error(d.error);
     return d;
   }
@@ -1023,7 +1021,13 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product1: p1, product2: p2, api_key: apiKey, analysis_type: currentType })
     });
-    const d = await res.json();
+    const rawText = await res.text();
+    let d;
+    try {
+      d = JSON.parse(rawText);
+    } catch(parseErr) {
+      throw new Error(`Server returned non-JSON (HTTP ${res.status}):\n\n${rawText.slice(0, 500)}`);
+    }
     if (d.error) throw new Error(d.error);
     return d;
   }
@@ -1047,7 +1051,7 @@ async function run() {
 
   } catch(e) {
     document.getElementById('classWrap').innerHTML =
-      `<div class="error-box">⚠️ <strong>Error:</strong> ${e.message}<br><br>Check your API key and try again.</div>`;
+      `<div class="error-box"><strong>Error:</strong><br><br><pre style="white-space:pre-wrap;font-size:12px;color:#fb7185">${e.message}</pre><br>Check your API key and try again.</div>`;
     document.getElementById('results').classList.add('visible');
   }
 
