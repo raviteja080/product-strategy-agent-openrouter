@@ -201,8 +201,20 @@ def post_openrouter_with_retry(api_key, json_payload, timeout=120, max_retries=5
                 timeout=timeout
             )
             if not response.ok:
-                err = response.json()
-                msg = err.get("error", {}).get("message", "OpenRouter API error")
+                # Safely parse error body — it may not always be valid JSON
+                try:
+                    err = response.json()
+                    msg = err.get("error", {}).get("message", "OpenRouter API error")
+                except Exception:
+                    msg = f"OpenRouter API error (HTTP {response.status_code})"
+
+                # 401/403 = bad API key — fail immediately, no point retrying
+                if response.status_code in [401, 403]:
+                    raise Exception(
+                        f"Invalid or unauthorized API key (HTTP {response.status_code}). "
+                        "Please check your OpenRouter key at openrouter.ai/keys and make sure it starts with 'sk-or-'."
+                    )
+
                 if response.status_code in [429, 503, 500] and attempt < max_retries - 1:
                     time.sleep(10 + (attempt * 5))
                     continue

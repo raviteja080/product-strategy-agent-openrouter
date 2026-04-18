@@ -989,6 +989,14 @@ async function run() {
   if (!product) { document.getElementById('productInput').focus(); return; }
   if (currentMode === 'compare' && !product2) { document.getElementById('productInput2').focus(); return; }
   if (!apiKey) { document.getElementById('apiKey').focus(); return; }
+  if (!apiKey.startsWith('sk-or-')) {
+    document.getElementById('out').innerHTML =
+      `<div class="error-box">⚠️ <strong>Invalid API Key format.</strong><br><br>
+      Your OpenRouter API key must start with <code>sk-or-</code>. 
+      Please copy the correct key from <a href="https://openrouter.ai/keys" target="_blank" style="color:#00e5ff">openrouter.ai/keys</a> and paste it above.</div>`;
+    document.getElementById('apiKey').focus();
+    return;
+  }
 
   const btn = document.getElementById('btn');
   btn.disabled = true;
